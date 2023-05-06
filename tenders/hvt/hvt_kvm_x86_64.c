@@ -42,7 +42,7 @@ void hvt_mem_size(size_t *mem_size) {
     hvt_x86_mem_size(mem_size);
 }
 
-static void setup_cpuid(struct hvt_b *hvb)
+static void setup_cpuid(struct hvt_b *hvb, int nbr)
 {
     struct kvm_cpuid2 *kvm_cpuid;
     int max_entries = 100;
@@ -55,7 +55,7 @@ static void setup_cpuid(struct hvt_b *hvb)
     if (ioctl(hvb->kvmfd, KVM_GET_SUPPORTED_CPUID, kvm_cpuid) < 0)
         err(1, "KVM: ioctl (GET_SUPPORTED_CPUID) failed");
 
-    if (ioctl(hvb->vcpufd, KVM_SET_CPUID2, kvm_cpuid) < 0)
+    if (ioctl(hvb->vcpu[nbr].fd, KVM_SET_CPUID2, kvm_cpuid) < 0)
         err(1, "KVM: ioctl (SET_CPUID2) failed");
 
     free(kvm_cpuid);
@@ -78,7 +78,7 @@ static struct kvm_segment sreg_to_kvm(const struct x86_sreg *sreg)
     return kvm;
 }
 
-void hvt_vcpu_init(struct hvt *hvt, hvt_gpa_t gpa_ep)
+void hvt_vcpu_init(struct hvt *hvt, hvt_gpa_t gpa_ep, int nbr)
 {
     struct hvt_b *hvb = hvt->b;
     int ret;
@@ -106,7 +106,7 @@ void hvt_vcpu_init(struct hvt *hvt, hvt_gpa_t gpa_ep)
         .ldt = sreg_to_kvm(&hvt_x86_sreg_unusable)
     };
 
-    ret = ioctl(hvb->vcpufd, KVM_SET_SREGS, &sregs);
+    ret = ioctl(hvb->vcpu[nbr].fd, KVM_SET_SREGS, &sregs);
     if (ret == -1)
         err(1, "KVM: ioctl (SET_SREGS) failed");
 
@@ -115,7 +115,7 @@ void hvt_vcpu_init(struct hvt *hvt, hvt_gpa_t gpa_ep)
         err(1, "KVM: ioctl (KVM_CHECK_EXTENSION) failed");
     if (ret != 1)
         errx(1, "KVM: host does not support KVM_CAP_GET_TSC_KHZ");
-    int tsc_khz = ioctl(hvb->vcpufd, KVM_GET_TSC_KHZ);
+    int tsc_khz = ioctl(hvb->vcpu[nbr].fd, KVM_GET_TSC_KHZ);
     if (tsc_khz == -1) {
         if (errno == EIO)
             errx(1, "KVM: host TSC is unstable, cannot continue");
@@ -141,20 +141,20 @@ void hvt_vcpu_init(struct hvt *hvt, hvt_gpa_t gpa_ep)
         .rsp = hvt->mem_size - 8,
         .rdi = X86_BOOT_INFO_BASE,
     };
-    ret = ioctl(hvb->vcpufd, KVM_SET_REGS, &regs);
+    ret = ioctl(hvb->vcpu[0].fd, KVM_SET_REGS, &regs);
     if (ret == -1)
         err(1, "KVM: ioctl (SET_REGS) failed");
 
     hvt->cpu_boot_info_base = X86_BOOT_INFO_BASE;
 }
 
-int hvt_vcpu_loop(struct hvt *hvt)
+int hvt_vcpu_loop(struct hvt *hvt, int nbr)
 {
     struct hvt_b *hvb = hvt->b;
     int ret;
 
     while (1) {
-        ret = ioctl(hvb->vcpufd, KVM_RUN, NULL);
+        ret = ioctl(hvb->vcpu[nbr].fd, KVM_RUN, NULL);
         if (ret == -1 && errno == EINTR)
             continue;
         if (ret == -1) {

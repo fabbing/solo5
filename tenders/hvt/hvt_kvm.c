@@ -61,18 +61,18 @@ struct hvt *hvt_init(size_t mem_size)
     if (hvb->vmfd == -1)
         err(1, "KVM: ioctl (CREATE_VM) failed");
 
-    hvb->vcpufd = ioctl(hvb->vmfd, KVM_CREATE_VCPU, 0);
-    if (hvb->vcpufd == -1)
+    hvb->vcpu[0].fd = ioctl(hvb->vmfd, KVM_CREATE_VCPU, 0);
+    if (hvb->vcpu[0].fd == -1)
         err(1, "KVM: ioctl (CREATE_VCPU) failed");
     size_t runsize = ioctl(hvb->kvmfd, KVM_GET_VCPU_MMAP_SIZE, NULL);
     if (runsize == (size_t)-1)
         err(1, "KVM: ioctl (GET_VCPU_MMAP_SIZE) failed");
-    if (runsize < sizeof(*hvb->vcpurun))
+    if (runsize < sizeof(*hvb->vcpu[0].run))
         errx(1, "KVM: invalid VCPU_MMAP_SIZE: %zd", runsize);
-    hvb->vcpurun =
-        mmap(NULL, runsize, PROT_READ | PROT_WRITE, MAP_SHARED, hvb->vcpufd,
+    hvb->vcpu[0].run =
+        mmap(NULL, runsize, PROT_READ | PROT_WRITE, MAP_SHARED, hvb->vcpu[0].fd,
              0);
-    if (hvb->vcpurun == MAP_FAILED)
+    if (hvb->vcpu[0].run == MAP_FAILED)
         err(1, "KVM: VCPU mmap failed");
 
     hvt->mem = mmap(NULL, mem_size, PROT_READ | PROT_WRITE,

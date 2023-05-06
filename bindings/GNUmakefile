@@ -42,7 +42,7 @@ stub_SRCS := stub/stubs.c
 
 hvt_SRCS := hvt/start.c $(common_SRCS) $(common_hvt_SRCS) hvt/time.c \
     hvt/platform_lifecycle.c hvt/yield.c hvt/tscclock.c hvt/console.c \
-    hvt/net.c hvt/block.c
+    hvt/net.c hvt/block.c hvt/smp.c
 
 spt_SRCS := spt/start.c \
     abort.c crt.c printf.c lib.c mem.c exit.c log.c cmdline.c tls.c mft.c \

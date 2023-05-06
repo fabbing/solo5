@@ -25,11 +25,15 @@
 #ifndef HVT_HV_KVM_H
 #define HVT_HV_KVM_H
 
+#define MAX_VCPU    4
+
 struct hvt_b {
     int kvmfd;
     int vmfd;
-    int vcpufd;
-    struct kvm_run *vcpurun;
+    struct {
+      int fd;
+      struct kvm_run *run;
+    } vcpu[MAX_VCPU];
 };
 
 #endif /* HVT_HV_KVM_H */

@@ -177,6 +177,7 @@ enum hvt_hypercall {
     HVT_HYPERCALL_NET_WRITE,
     HVT_HYPERCALL_NET_READ,
     HVT_HYPERCALL_HALT,
+    HVT_HYPERCALL_SMP_TEST,
     HVT_HYPERCALL_MAX
 };
 
@@ -256,6 +257,17 @@ struct hvt_hc_poll {
     uint64_t ready_set;
     int ret;
 };
+
+/* HVT_HYPERCALL_SMP_TEST */
+struct hvt_hc_smp_test {
+    /* IN */
+    HVT_GUEST_PTR(void *) start;
+
+    /* OUT */
+    uint64_t out;
+    int ret;
+};
+
 
 /*
  * HVT_HYPERCALL_HALT: Terminate guest execution.

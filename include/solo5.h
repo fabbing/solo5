@@ -353,4 +353,7 @@ solo5_result_t solo5_block_write(solo5_handle_t handle, solo5_off_t offset,
 solo5_result_t solo5_block_read(solo5_handle_t handle, solo5_off_t offset,
         uint8_t *buf, size_t size);
 
+
+solo5_result_t solo5_smp_test(solo5_handle_t handle, const void *start);
+
 #endif

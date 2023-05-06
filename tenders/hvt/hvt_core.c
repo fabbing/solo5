@@ -290,6 +290,16 @@ static void hypercall_poll(struct hvt *hvt, hvt_gpa_t gpa)
     t->ret = nrevents;
 }
 
+static void hypercall_smp_test(struct hvt *hvt, hvt_gpa_t gpa)
+{
+    struct hvt_hc_smp_test *t =
+        HVT_CHECKED_GPA_P(hvt, gpa, sizeof (struct hvt_hc_smp_test));
+
+    fprintf(stderr, "Handling the hypercall!\n"); // XXX
+
+    t->ret = 1337;
+}
+
 static int setup(struct hvt *hvt, struct mft *mft)
 {
     if (waitsetfd == -1)
@@ -301,6 +311,8 @@ static int setup(struct hvt *hvt, struct mft *mft)
                 hypercall_puts) == 0);
     assert(hvt_core_register_hypercall(HVT_HYPERCALL_POLL,
                 hypercall_poll) == 0);
+    assert(hvt_core_register_hypercall(HVT_HYPERCALL_SMP_TEST,
+                hypercall_smp_test) == 0);
 
     return 0;
 }
